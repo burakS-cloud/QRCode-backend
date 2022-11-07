@@ -37,10 +37,14 @@ const drive = google.drive({
   auth: oauth2Client,
 });
 
-mongoose.connect(process.env.DB_URL || "mongodb://localhost:27017/QRCode", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(
+  process.env.DB_URL ||
+    "mongodb://https://qrcode-api.onrender.com:27017/QRCode",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+);
 
 async function generateEmptyQrCode() {
   let dt = DateTime.now();
