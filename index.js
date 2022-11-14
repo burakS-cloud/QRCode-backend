@@ -208,10 +208,6 @@ app.post("/api/receiveParams", async (req, res) => {
   });
 });
 
-app.get("*", async (req, res) => {
-  res.sendFile(path.join(__dirname, "static/index.html"));
-});
-
 app.listen(3001, () => {
   console.log("Server running on port 3001!");
 });
