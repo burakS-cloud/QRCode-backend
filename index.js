@@ -4,7 +4,7 @@ const fileUpload = require("express-fileupload");
 const path = require("path");
 const fs = require("fs");
 cors = require("cors");
-// var randomstring = require("randomstring"); //nothing
+// var randomstring = require("randomstring");
 require("dotenv").config();
 const { DateTime } = require("luxon");
 var bodyParser = require("body-parser");
@@ -12,6 +12,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(cors());
+// app.use(express.json());
 
 app.use(fileUpload());
 
@@ -78,8 +79,14 @@ async function deleteFile() {
 
 //deleteFile();
 
+app.post("/api/deneme", async (req, res) => {
+  console.log("deneme route hit");
+  res.json("reached to backend");
+});
+
 app.post("/api/saveVideoQr", async (req, res) => {
-  let idToSearchFor = +req.body.qrparams;
+  let idToSearchFor = req.body.qrparams;
+  console.log("savevideoQr route hit");
 
   if (req.files === null || req.files === undefined) {
     return res.status(400).json({ msg: "No file uploaded" });
@@ -122,29 +129,23 @@ app.post("/api/saveVideoQr", async (req, res) => {
       // Finding the qr code with the params sent from the frontend, then using that document's id to run
       // findbyidandupdate method to fill in the other fields with data provided by user, on the frontend.
 
-      QRCode.find({ qrCode_ID: idToSearchFor }, async function (err, docs) {
-        if (err) {
-          console.log(err);
-        } else {
-          await QRCode.findByIdAndUpdate(
-            docs[0]._id,
-            {
-              video_ID: response.data.id,
-              video_URL: url,
-              user_email: req.body["form[user_email]"],
-              user_name: req.body["form[user_name]"],
-              contentType: response.data.mimeType,
-            },
-            function (err, docs) {
-              if (err) {
-                console.log(err);
-              } else {
-                console.log("Updated QrCode:", docs);
-              }
-            }
-          );
+      QRCode.findByIdAndUpdate(
+        idToSearchFor,
+        {
+          video_ID: response.data.id,
+          video_URL: url,
+          user_email: req.body["form[user_email]"],
+          user_name: req.body["form[user_name]"],
+          contentType: response.data.mimeType,
+        },
+        function (err, doc) {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log("Updated QrCode:", doc);
+          }
         }
-      });
+      );
 
       fs.unlink(file.name, function (err, file) {
         if (err) {
@@ -192,18 +193,72 @@ app.post("/api/saveVideoQr", async (req, res) => {
 });
 
 app.post("/api/receiveParams", async (req, res) => {
-  let idToSearchFor = +req.body.qrparams;
-  console.log("id:", idToSearchFor);
+  // let idToSearchFor = +req.body.qrparams;
+  let id = req.body.qrparams;
+  console.log("receiveparams route hit");
+  console.log("id:", id);
 
-  QRCode.find({ qrCode_ID: idToSearchFor }, function (err, docs) {
-    if (docs.length === 0) {
-      res.json("nonexistent");
+  if (id.length === 24) {
+    try {
+      QRCode.findById(id, function (err, doc) {
+        if (!doc) {
+          res.json("nonexistent");
+        }
+        if (doc?.video_URL) {
+          res.json(doc?.video_URL);
+        }
+        if (doc && !doc?.video_URL) {
+          res.json("empty");
+        }
+        if (err) {
+          console.log(err);
+        }
+      });
+    } catch (error) {
+      console.log(error);
     }
-    if (docs[0]?.video_URL) {
-      res.json(docs[0]?.video_URL);
-    }
-    if (docs.length > 0 && !docs[0]?.video_URL) {
-      res.json("empty");
+  } else {
+    res.json("nonexistent");
+  }
+});
+
+app.get("/api/getQRCodes", async (req, res) => {
+  let codes = await QRCode.find({ video_URL: { $exists: false } });
+  let codesIDS = codes.map((item) => item.qrCode_ID);
+  let codeObj = { codes, codesIDS };
+  res.json(codeObj);
+});
+
+app.get("/api/getUsedQRCodes", async (req, res) => {
+  let codes = await QRCode.find({ video_URL: { $exists: true } });
+  res.json(codes);
+});
+
+app.post("/api/createQR", async (req, res) => {
+  let amount = req.body.amount;
+  for (let i = 0; i < amount; i++) {
+    generateEmptyQrCode();
+  }
+  res.json(`${amount} new QR Codes generated!`);
+});
+
+app.post("/api/deleteQR", async (req, res) => {
+  let sendedId = req.body.ID;
+  console.log("sendedId:", sendedId);
+  QRCode.findOne({ qrCode_ID: sendedId }, async function (err, doc) {
+    if (doc) {
+      console.log("the qr:", doc);
+      QRCode.findByIdAndDelete(doc._id, function (err, doc) {
+        if (err) {
+          console.log(err);
+          res.json("Something went wrong, could not delete QR Code");
+        } else {
+          console.log("Deleted:", doc);
+          res.json("QR Code deleted, refresh the page to see the effect");
+        }
+      });
+    } else {
+      console.log(err);
     }
   });
 });
