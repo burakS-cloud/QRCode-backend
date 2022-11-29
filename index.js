@@ -12,13 +12,6 @@ var bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-const CLIENT_ID =
-  "666879564253-8mbvrn04jb7kqvepppha42n20le0avu7.apps.googleusercontent.com";
-const CLIENT_SECRET = "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";
-const REDIRECT_URI = "https://developers.google.com/oauthplayground";
-const REFRESH_TOKEN =
-  "1//04IRS26tm47M1CgYIARAAGAQSNwF-L9IrB_t8Ac1tiBW5nPgrRCqOZM-U9p8Mv8CEhJQsb5BRjIQu-GVAX3CVIOxYBqaE86_x_qY";
-
 app.use(cors());
 // app.use(express.json());
 
@@ -28,10 +21,10 @@ app.use(fileUpload());
 
 const { google } = require("googleapis");
 
-// const CLIENT_ID = process.env.CLIENT_ID;
-// const CLIENT_SECRET = process.env.CLIENT_SECRET;
-// const REDIRECT_URI = process.env.REDIRECT_URI;
-// const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
 
 const oauth2Client = new google.auth.OAuth2(
   CLIENT_ID,
