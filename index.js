@@ -67,10 +67,10 @@ async function generateEmptyQrCode() {
 
 //generateEmptyQrCode();
 
-async function deleteFile() {
+async function deleteFile(id) {
   try {
     const response = await drive.files.delete({
-      fileId: "1EYYhYWkz7jqmDWougtn5bqhk7KiD_12T",
+      fileId: id,
     });
     console.log(response.data, response.status);
   } catch (error) {
@@ -248,6 +248,28 @@ app.post("/api/deleteQR", async (req, res) => {
   console.log("sendedId:", sendedId);
   QRCode.findOne({ qrCode_ID: sendedId }, async function (err, doc) {
     if (doc) {
+      console.log("the qr:", doc);
+      QRCode.findByIdAndDelete(doc._id, function (err, doc) {
+        if (err) {
+          console.log(err);
+          res.json("Something went wrong, could not delete QR Code");
+        } else {
+          console.log("Deleted:", doc);
+          res.json("QR Code deleted, refresh the page to see the effect");
+        }
+      });
+    } else {
+      console.log(err);
+    }
+  });
+});
+
+app.post("/api/deleteUsedQR", async (req, res) => {
+  let sendedId = req.body.ID;
+  console.log("sendedId:", sendedId);
+  QRCode.findOne({ qrCode_ID: sendedId }, async function (err, doc) {
+    if (doc) {
+      deleteFile(doc.video_ID);
       console.log("the qr:", doc);
       QRCode.findByIdAndDelete(doc._id, function (err, doc) {
         if (err) {
