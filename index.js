@@ -40,15 +40,10 @@ const drive = google.drive({
 });
 
 try {
-  mongoose.connect(
-    process.env.DB_URL ||
-      // "mongodb://https://qrcode-api.onrender.com:27017/QRCode",
-      "mongodb+srv://buraks:357829@cluster0.kfuveql.mongodb.net/?retryWrites=true&w=majority",
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
-  );
+  mongoose.connect(process.env.DB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
   console.log("database connected successfully");
 } catch (error) {
   console.log(error);
